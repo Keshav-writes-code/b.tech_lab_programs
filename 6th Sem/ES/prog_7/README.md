@@ -1,5 +1,5 @@
 ## Query to run
 
 ```shell
-?- queens(4, Solution).
+?- queens(4, Solution)..
 ```
