@@ -1,54 +1,65 @@
-% The state is represented as (Jug1, Jug2) where Jug1 is the amount of water in the 3L jug, and Jug2 is the amount of water in the 5L jug.
 
-% We will use the search strategy to find the sequence of actions to reach the goal.
+% Predicate to start the game with initial state and the first move
+start(X, Y) :-
+    write('Initial State: '), write(X), write(' liters in the 5-liter jug, '),
+    write(Y), write(' liters in the 3-liter jug'), nl,
+    prompt_move(X, Y, 1).
 
-% Base case: the goal state is reached.
-solve(State, Goal, [State]) :-
-    State = Goal.
+% Predicate to prompt the user for the next move
+prompt_move(X, Y, N) :-
+    write('Move '), write(N), write(': Choose an action: '), nl,
+    write('1. Fill the 5-liter jug'), nl,
+    write('2. Fill the 3-liter jug'), nl,
+    write('3. Empty the 5-liter jug'), nl,
+    write('4. Empty the 3-liter jug'), nl,
+    write('5. Pour from 5-liter jug to 3-liter jug'), nl,
+    write('6. Pour from 3-liter jug to 5-liter jug'), nl,
+    read(Move),
+    contains_by_3(X, Y, Move, N).
 
-% Recursive case 1: Fill Jug1 (3L jug).
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug1 < 3,
-    NewJug1 is 3,
-    solve((NewJug1, Jug2), Goal, Steps).
+% Predicate to apply a move and update the state
+contains_by_3(X, Y, 1, N) :-
+    NewX is 5, % Fill the 5-liter jug
+    write('After Move '), write(N), write(': '), 
+    write(NewX), write(' liters in the 5-liter jug, '),
+    write(Y), write(' liters in the 3-liter jug'), nl,
+    (NewX == 4 -> write('Congratulations! Goal state reached: 4 liters in the 5-liter jug.'), nl; prompt_move(NewX, Y, N+1)).
 
-% Recursive case 2: Fill Jug2 (5L jug).
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug2 < 5,
-    NewJug2 is 5,
-    solve((Jug1, NewJug2), Goal, Steps).
+contains_by_3(X, Y, 2, N) :-
+    NewY is 3, % Fill the 3-liter jug
+    write('After Move '), write(N), write(': '), 
+    write(X), write(' liters in the 5-liter jug, '),
+    write(NewY), write(' liters in the 3-liter jug'), nl,
+    prompt_move(X, NewY, N+1).
 
-% Recursive case 3: Empty Jug1 (3L jug).
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug1 > 0,
-    NewJug1 is 0,
-    solve((NewJug1, Jug2), Goal, Steps).
+contains_by_3(X, Y, 3, N) :-
+    NewX is 0, % Empty the 5-liter jug
+    write('After Move '), write(N), write(': '), 
+    write(NewX), write(' liters in the 5-liter jug, '),
+    write(Y), write(' liters in the 3-liter jug'), nl,
+    prompt_move(NewX, Y, N+1).
 
-% Recursive case 4: Empty Jug2 (5L jug).
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug2 > 0,
-    NewJug2 is 0,
-    solve((Jug1, NewJug2), Goal, Steps).
+contains_by_3(X, Y, 4, N) :-
+    NewY is 0, % Empty the 3-liter jug
+    write('After Move '), write(N), write(': '), 
+    write(X), write(' liters in the 5-liter jug, '),
+    write(NewY), write(' liters in the 3-liter jug'), nl,
+    prompt_move(X, NewY, N+1).
 
-% Recursive case 5: Pour water from Jug1 to Jug2.
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug1 > 0,
-    Jug2 < 5,
-    Transfer is min(Jug1, 5 - Jug2),
-    NewJug1 is Jug1 - Transfer,
-    NewJug2 is Jug2 + Transfer,
-    solve((NewJug1, NewJug2), Goal, Steps).
+contains_by_3(X, Y, 5, N) :-
+    Transfer is min(X, 3 - Y), % Pour from the 5-liter jug to the 3-liter jug
+    NewX is X - Transfer,
+    NewY is Y + Transfer,
+    write('After Move '), write(N), write(': '), 
+    write(NewX), write(' liters in the 5-liter jug, '),
+    write(NewY), write(' liters in the 3-liter jug'), nl,
+    prompt_move(NewX, NewY, N+1).
 
-% Recursive case 6: Pour water from Jug2 to Jug1.
-solve((Jug1, Jug2), Goal, [(Jug1, Jug2) | Steps]) :-
-    Jug2 > 0,
-    Jug1 < 3,
-    Transfer is min(Jug2, 3 - Jug1),
-    NewJug1 is Jug1 + Transfer,
-    NewJug2 is Jug2 - Transfer,
-    solve((NewJug1, NewJug2), Goal, Steps).
-
-% This predicate takes the initial state (0, 0) and tries to reach the Goal state.
-find_solution(Goal, Steps) :-
-    solve((0, 0), Goal, Steps).
-
+contains_by_3(X, Y, 6, N) :-
+    Transfer is min(Y, 5 - X), % Pour from the 3-liter jug to the 5-liter jug
+    NewX is X + Transfer,
+    NewY is Y - Transfer,
+    write('After Move '), write(N), write(': '), 
+    write(NewX), write(' liters in the 5-liter jug, '),
+    write(NewY), write(' liters in the 3-liter jug'), nl,
+    prompt_move(NewX, NewY, N+1).
