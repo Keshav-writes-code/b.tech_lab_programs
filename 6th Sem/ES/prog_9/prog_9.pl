@@ -1,16 +1,27 @@
-dist(1,2,10). dist(2,1,10).
-dist(1,3,15). dist(3,1,15).
-dist(1,4,20). dist(4,1,20).
-dist(2,3,35). dist(3,2,35).
-dist(2,4,25). dist(4,2,25).
-dist(3,4,30). dist(4,3,30).
+% solve(+CapA, +CapB, +GoalA)
+solve(CapA, CapB, GoalA) :-
+    path(state(0, 0), [state(0, 0)], Path, CapA, CapB, GoalA),
+    maplist(write_state, Path), nl.
 
-route_cost([_],0).
-route_cost([A,B|T],C) :- dist(A,B,D), route_cost([B|T],R), C is D + R.
+% Moves
+move(state(_, B), state(CapA, B), CapA, _) :- true.              % Fill A
+move(state(A, _), state(A, CapB), _, CapB) :- true.              % Fill B
+move(state(_, B), state(0, B), _, _) :- true.                    % Empty A
+move(state(A, _), state(A, 0), _, _) :- true.                    % Empty B
 
-tsp(BestRoute, BestCost) :-
-    permutation([2,3,4], P),
-    Route = [1|P], append(Route,[1], FullRoute),
-    route_cost(FullRoute, Cost),
-    findall(C-R, (permutation([2,3,4], X), Rr=[1|X], append(Rr,[1], FR), route_cost(FR,C)), L),
-    sort(L, [BestCost-BestRoute|_]).
+move(state(A, B), state(NA, NB), CapA, CapB) :-                  % Pour A -> B
+    T is min(A, CapB - B), T > 0,
+    NA is A - T, NB is B + T.
+
+move(state(A, B), state(NA, NB), CapA, CapB) :-                  % Pour B -> A
+    T is min(B, CapA - A), T > 0,
+    NB is B - T, NA is A + T.
+
+% Pathfinding
+path(S, _, [S], _, _, Goal) :- S = state(Goal, _).
+path(S, Visited, [S|Path], CapA, CapB, Goal) :-
+    move(S, Next, CapA, CapB),
+    \+ member(Next, Visited),
+    path(Next, [Next|Visited], Path, CapA, CapB, Goal).
+
+write_state(state(A, B)) :- format("(~w,~w) ", [A, B]).
